@@ -76,10 +76,14 @@ public class PlayerEngine {
     }
 
     // IMPORTANT : Remplacer PlayerView par VLCVideoLayout dans votre layout XML
-  public void attachView(VLCVideoLayout videoLayout) {
+public void attachView(VLCVideoLayout videoLayout) {
     if (vlcPlayer != null && videoLayout != null) {
-        // LibVLC moderne : on attache directement le layout au MediaPlayer
-        vlcPlayer.attachViews(videoLayout);
+        // Récupération de l'interface de rendu vidéo (Vout)
+        org.videolan.libvlc.interfaces.IVLCVout vout = vlcPlayer.getVLCVout();
+        
+        // On associe la vue interne (SurfaceView) gérée par le VLCVideoLayout
+        // VLCVideoLayout implémente ou contient une SurfaceView/TextureView accessible en interne par VLC
+        vlcPlayer.attachViews(videoLayout, null, true, false);
     }
 }
 
