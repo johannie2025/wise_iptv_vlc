@@ -76,14 +76,12 @@ public class PlayerEngine {
     }
 
     // IMPORTANT : Remplacer PlayerView par VLCVideoLayout dans votre layout XML
-    public void attachView(VLCVideoLayout videoLayout) {
-        if (vlcPlayer != null) {
-            IVLCVout vout = vlcPlayer.getVLCVout();
-            // On attache le layout de rendu vidéo
-            vout.setVideoView(videoLayout);
-            vout.attachViews();
-        }
+  public void attachView(VLCVideoLayout videoLayout) {
+    if (vlcPlayer != null && videoLayout != null) {
+        // LibVLC moderne : on attache directement le layout au MediaPlayer
+        vlcPlayer.attachViews(videoLayout);
     }
+}
 
     public void play(String url) {
         if (url == null || url.isEmpty()) return;
