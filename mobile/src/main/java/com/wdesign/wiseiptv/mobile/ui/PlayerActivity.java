@@ -143,8 +143,18 @@ public class PlayerActivity extends AppCompatActivity implements PlayerEngine.Li
     
     @Override protected void onStop() { super.onStop(); if (engine != null) engine.pause(); }
     @Override protected void onDestroy() {
-        super.onDestroy(); osdHandler.removeCallbacksAndMessages(null);
-        if (engine != null) { engine.release(); engine = null; }
-        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+    // 1. On coupe immédiatement les handlers de l'interface
+    osdHandler.removeCallbacksAndMessages(null);
+    
+    // 2. On lance la libération asynchrone (qui ne bloquera pas le thread UI)
+    if (engine != null) {
+        engine.release();
+        engine = null;
     }
+    
+    // 3. On nettoie les flags de l'écran
+    getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+    
+    super.onDestroy();
+}
 }

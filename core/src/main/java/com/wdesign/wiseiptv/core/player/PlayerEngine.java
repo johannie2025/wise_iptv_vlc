@@ -7,7 +7,6 @@ import android.util.Log;
 import org.videolan.libvlc.LibVLC;
 import org.videolan.libvlc.Media;
 import org.videolan.libvlc.MediaPlayer;
-import org.videolan.libvlc.interfaces.IVLCVout;
 import org.videolan.libvlc.util.VLCVideoLayout;
 
 import java.util.ArrayList;
@@ -21,9 +20,6 @@ public class PlayerEngine {
         void onError(String message);
     }
 
-    // Note : VLC gère le multi-débit (ABR) nativement ou via des options réseau.
-    // Les limitations strictes de bitrate par index matériel se gèrent différemment en VLC,
-    // mais nous gardons la structure pour ne pas casser votre logique métier.
     public static final int[] QUALITY_BITRATES = {0, 200_000, 500_000, 1_000_000, 2_500_000, 5_000_000, 15_000_000};
     public static final String[] QUALITY_LABELS = {"Auto","240p","360p","480p","720p","1080p","4K"};
 
@@ -32,6 +28,7 @@ public class PlayerEngine {
     private final Context context;
     private final Listener listener;
     private int currentQuality = 0;
+    private boolean isReleasing = false;
 
     public PlayerEngine(Context ctx, Listener l) {
         this.context = ctx.getApplicationContext();
@@ -40,20 +37,25 @@ public class PlayerEngine {
     }
 
     private void buildPlayer() {
-        // Configuration des options VLC optimisées pour l'IPTV (buffering, réseau)
         ArrayList<String> options = new ArrayList<>();
-        options.add("-vvv"); // Verbosité des logs (à retirer en production si trop lourd)
+        // OPTIMISATIONS IPTV POUR FLUIDITÉ MAXIMUM
         options.add("--http-reconnect");
-        options.add("--network-caching=3000"); // Cache réseau de 3 secondes pour stabiliser l'IPTV
+        options.add("--network-caching=5000"); // Augmenté à 5 secondes pour amortir les variations de connexion
+        options.add("--live-caching=2000");    // Cache pour le streaming direct
+        options.add("--clock-jitter=500");     // Tolérance aux instabilités d'horloge des flux TS
+        options.add("--clock-synchro=0");      // Désactive la resynchronisation stricte qui cause des micro-coupures
+        options.add("--drop-late-frames");     // Autorise le saut d'images en retard pour garder la fluidité audio
+        options.add("--skip-frames");          // fluidifie sur les appareils moins puissants
+        options.add("--audio-time-stretch");   // Permet d'accélérer/ralentir l'audio sans coupure si le réseau fluctue
 
         libVLC = new LibVLC(context, options);
         vlcPlayer = new MediaPlayer(libVLC);
 
-        // Gestion des événements VLC (Équivalent de Player.Listener d'ExoPlayer)
         vlcPlayer.setEventListener(event -> {
+            if (isReleasing) return; // Ignore les événements pendant la fermeture
+            
             switch (event.type) {
                 case MediaPlayer.Event.Buffering:
-                    // event.getBuffering() donne le pourcentage de mise en cache
                     if (event.getBuffering() < 100) {
                         listener.onBuffering(true);
                     } else {
@@ -65,113 +67,116 @@ public class PlayerEngine {
                     listener.onPlaying();
                     break;
                 case MediaPlayer.Event.EncounteredError:
-                    Log.e(TAG, "VLC a rencontré une erreur de lecture");
-                    listener.onError("Erreur de lecture (VLC)");
-                    break;
-                case MediaPlayer.Event.EndReached:
-                    Log.i(TAG, "Fin du flux atteinte");
+                    Log.e(TAG, "VLC Error");
+                    listener.onError("Erreur de lecture ou flux indisponible");
                     break;
             }
         });
     }
 
-    // IMPORTANT : Remplacer PlayerView par VLCVideoLayout dans votre layout XML
-public void attachView(VLCVideoLayout videoLayout) {
-    if (vlcPlayer != null && videoLayout != null) {
-        // Récupération de l'interface de rendu vidéo (Vout)
-        org.videolan.libvlc.interfaces.IVLCVout vout = vlcPlayer.getVLCVout();
-        
-        // On associe la vue interne (SurfaceView) gérée par le VLCVideoLayout
-        // VLCVideoLayout implémente ou contient une SurfaceView/TextureView accessible en interne par VLC
-        vlcPlayer.attachViews(videoLayout, null, true, false);
+    public void attachView(VLCVideoLayout videoLayout) {
+        if (vlcPlayer != null && videoLayout != null && !isReleasing) {
+            vlcPlayer.attachViews(videoLayout, null, true, false);
+        }
     }
-}
 
     public void play(String url) {
-        if (url == null || url.isEmpty()) return;
+        if (url == null || url.isEmpty() || isReleasing) return;
 
         try {
-            stop(); // Sécurité : Arrêter la lecture en cours si existante
+            if (vlcPlayer.isPlaying()) {
+                vlcPlayer.stop();
+            }
 
-            // Création du média VLC à partir de l'URL du flux IPTV
             Media media = new Media(libVLC, Uri.parse(url));
             
-            // Options spécifiques au média (Exemple : forcer le décodage matériel)
+            // Forcer le décodage matériel automatique
             media.setHWDecoderEnabled(true, true);
-            
+            // Option spécifique au média pour le cache
+            media.addOption(":network-caching=5000");
+
             vlcPlayer.setMedia(media);
-            media.release(); // Libération de la référence locale après attribution au player
+            media.release();
 
             vlcPlayer.play();
-            applyQuality(currentQuality);
         } catch (Exception e) {
-            Log.e(TAG, "Erreur lors du lancement de la lecture: " + e.getMessage());
-            listener.onError("Impossible d'ouvrir le flux");
+            Log.e(TAG, "Error playing stream: " + e.getMessage());
+            listener.onError("Impossible d'ouvrir ce flux");
         }
     }
 
     public void stop() {
-        if (vlcPlayer != null && vlcPlayer.isPlaying()) {
+        if (vlcPlayer != null && !isReleasing) {
             vlcPlayer.stop();
         }
     }
 
     public void pause() {
-        if (vlcPlayer != null) {
+        if (vlcPlayer != null && !isReleasing) {
             vlcPlayer.pause();
         }
     }
 
     public void resume() {
-        if (vlcPlayer != null) {
+        if (vlcPlayer != null && !isReleasing) {
             vlcPlayer.play();
         }
     }
 
     public boolean isPlaying() {
-        return vlcPlayer != null && vlcPlayer.isPlaying();
+        return vlcPlayer != null && !isReleasing && vlcPlayer.isPlaying();
     }
 
     public long getPosition() {
-        return vlcPlayer != null ? vlcPlayer.getTime() : 0; // En VLC, getCurrentPosition() est un float entre 0 et 1, getTime() est en ms.
+        return vlcPlayer != null && !isReleasing ? vlcPlayer.getTime() : 0;
     }
 
     public void seekTo(long ms) {
-        if (vlcPlayer != null) {
+        if (vlcPlayer != null && !isReleasing) {
             vlcPlayer.setTime(ms);
         }
     }
 
     public void setQuality(int index) {
         this.currentQuality = index;
-        applyQuality(index);
     }
 
     public int getQuality() {
         return currentQuality;
     }
 
-    private void applyQuality(int i) {
-        if (vlcPlayer == null || vlcPlayer.getMedia() == null) return;
-        
-        // Note sur la qualité avec LibVLC : 
-        // Contrairement à ExoPlayer qui permet de brider dynamiquement le bitrate via TrackSelection,
-        // VLC s'appuie nativement sur le choix des pistes (pistes vidéo disponibles dans le flux HLS/M3U8).
-        // Pour changer de qualité à la volée sur un flux adaptatif en VLC, on utilise plutôt :
-        // vlcPlayer.setVideoTrack(trackId);
-        Log.d(TAG, "Changement de qualité demandé (Index): " + i + " - Bitrate théorique cible: " + QUALITY_BITRATES[i]);
-    }
-
+    /**
+     * LIBÉRATION SÉCURISÉE EN ARRIÈRE-PLAN (Évite le crash / ANR au retour)
+     */
     public void release() {
+        if (isReleasing) return;
+        isReleasing = true;
+
+        // On coupe l'affichage immédiatement pour libérer l'activité
         if (vlcPlayer != null) {
-            vlcPlayer.getVLCVout().detachViews();
-            vlcPlayer.stop();
-            vlcPlayer.release();
-            vlcPlayer = null;
+            try {
+                vlcPlayer.getVLCVout().detachViews();
+            } catch (Exception ignored) {}
         }
-        if (libVLC != null) {
-            libVLC.release();
-            libVLC = null;
-        }
+
+        // On effectue la lourde destruction de LibVLC dans un thread séparé
+        new Thread(() -> {
+            try {
+                if (vlcPlayer != null) {
+                    if (vlcPlayer.isPlaying()) {
+                        vlcPlayer.stop();
+                    }
+                    vlcPlayer.release();
+                    vlcPlayer = null;
+                }
+                if (libVLC != null) {
+                    libVLC.release();
+                    libVLC = null;
+                }
+                Log.d(TAG, "LibVLC détruit avec succès en tâche de fond.");
+            } catch (Exception e) {
+                Log.e(TAG, "Erreur pendant le release de VLC: " + e.getMessage());
+            }
+        }).start();
     }
 }
