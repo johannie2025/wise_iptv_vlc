@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="wise_bg">#0A0A0F</color>
+    <color name="wise_surface">#111825</color>
+    <color name="wise_blue">#1A6FBF</color>
+    <color name="wise_blue_dark">#0D3D6E</color>
+    <color name="wise_blue_light">#3A8FDF</color>
+    <color name="wise_red">#D42B2B</color>
+    <color name="white">#FFFFFF</color>
+    <color name="text_secondary">#99AABB</color>
+    <color name="live_red">#FF0000</color>
+</resources>

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.WiseIPTV" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/wise_blue</item>
+        <item name="colorSecondary">@color/wise_red</item>
+        <item name="android:colorBackground">@color/wise_bg</item>
+        <item name="android:textColor">@color/white</item>
+        <item name="android:windowBackground">@color/wise_bg</item>
+        <item name="android:statusBarColor">@color/wise_bg</item>
+        <item name="android:windowLightStatusBar">false</item>
+    </style>
+    <style name="Theme.WiseIPTV.Fullscreen">
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:windowBackground">@android:color/black</item>
+    </style>
+</resources>

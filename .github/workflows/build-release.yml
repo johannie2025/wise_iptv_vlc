@@ -1,0 +1,290 @@
+name: Build Wise IPTV — Release (Mobile + TV)
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Version tag (ex: v1.0.0)'
+        required: true
+        default: 'v1.0.0'
+
+permissions:
+  contents: write
+
+jobs:
+
+  # ══════════════════════════════════════════════════════════════════
+  # JOB 1 : APK Mobile
+  # ══════════════════════════════════════════════════════════════════
+  build-mobile:
+    name: 📱 Mobile APK
+    runs-on: ubuntu-latest
+    env:
+      KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ hashFiles('**/*.gradle', 'gradle/wrapper/gradle-wrapper.properties') }}
+          restore-keys: gradle-
+
+      - name: Download gradle-wrapper.jar
+        run: |
+          GRADLE_VERSION=8.6
+          mkdir -p gradle/wrapper
+          curl -sSfL "https://raw.githubusercontent.com/gradle/gradle/v${GRADLE_VERSION}.0/gradle/wrapper/gradle-wrapper.jar" \
+               -o gradle/wrapper/gradle-wrapper.jar
+          chmod +x gradlew
+
+      - name: Ensure gradle-wrapper.properties
+        run: |
+          PROPS="gradle/wrapper/gradle-wrapper.properties"
+          if [ ! -f "$PROPS" ]; then
+            cat > "$PROPS" <<'PROPSEOF'
+          distributionBase=GRADLE_USER_HOME
+          distributionPath=wrapper/dists
+          distributionUrl=https\://services.gradle.org/distributions/gradle-8.6-bin.zip
+          zipStoreBase=GRADLE_USER_HOME
+          zipStorePath=wrapper/dists
+          PROPSEOF
+          fi
+
+      - name: Build Mobile Debug APK
+        run: |
+          ./gradlew :mobile:assembleDebug \
+            --no-daemon --stacktrace --info \
+            2>&1 | tee build-mobile-debug.log
+          echo "════════ ERREURS MOBILE ════════"
+          grep -E "^(e:|error:|FAILED|Exception|Caused by:)" build-mobile-debug.log \
+            | grep -v "UP-TO-DATE\|SKIPPED" | head -100 || echo "Aucune erreur"
+          grep -q "BUILD SUCCESSFUL" build-mobile-debug.log || exit 1
+
+      - name: Show mobile error on failure
+        if: failure()
+        run: |
+          echo "════════ ERREURS DÉTAILLÉES ════════"
+          grep -E "(error:|Error:|FAILED|Exception|Caused by:|\.java:[0-9]+)" build-mobile-debug.log | head -200
+          echo "════════ 50 DERNIÈRES LIGNES ════════"
+          tail -50 build-mobile-debug.log
+
+      - name: Upload mobile error log
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mobile-error-log-${{ github.run_number }}
+          path: build-mobile-debug.log
+          retention-days: 7
+
+      - name: Sign Mobile Release APK
+        if: env.KEYSTORE_BASE64 != ''
+        env:
+          KEY_ALIAS:      ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD:   ${{ secrets.ANDROID_KEY_PASSWORD }}
+          STORE_PASSWORD: ${{ secrets.ANDROID_STORE_PASSWORD }}
+        run: |
+          echo "$KEYSTORE_BASE64" | base64 --decode > mobile/keystore.jks
+          ./gradlew :mobile:assembleRelease \
+            --no-daemon --stacktrace --info \
+            -Pandroid.injected.signing.store.file=mobile/keystore.jks \
+            -Pandroid.injected.signing.store.password=$STORE_PASSWORD \
+            -Pandroid.injected.signing.key.alias=$KEY_ALIAS \
+            -Pandroid.injected.signing.key.password=$KEY_PASSWORD \
+            2>&1 | tee build-mobile-release.log
+          rm -f mobile/keystore.jks
+          grep -q "BUILD SUCCESSFUL" build-mobile-release.log || exit 1
+
+      - name: Rename Mobile APKs
+        run: |
+          TAG="${{ github.ref_name }}"
+          DEBUG=$(find mobile/build/outputs/apk/debug   -name '*.apk' 2>/dev/null | head -1)
+          RELEASE=$(find mobile/build/outputs/apk/release -name '*.apk' 2>/dev/null | head -1)
+          [ -f "$DEBUG" ]   && cp "$DEBUG"   "WiseIPTV-Mobile-${TAG}-debug.apk"   || true
+          [ -f "$RELEASE" ] && cp "$RELEASE" "WiseIPTV-Mobile-${TAG}-release.apk" || true
+          ls -lh WiseIPTV-Mobile-*.apk
+
+      - name: Upload Mobile artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: mobile-apks
+          path: 'WiseIPTV-Mobile-*.apk'
+          retention-days: 7
+
+  # ══════════════════════════════════════════════════════════════════
+  # JOB 2 : APK TV
+  # ══════════════════════════════════════════════════════════════════
+  build-tv:
+    name: 📺 TV APK
+    runs-on: ubuntu-latest
+    env:
+      KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ hashFiles('**/*.gradle', 'gradle/wrapper/gradle-wrapper.properties') }}
+          restore-keys: gradle-
+
+      - name: Download gradle-wrapper.jar
+        run: |
+          GRADLE_VERSION=8.6
+          mkdir -p gradle/wrapper
+          curl -sSfL "https://raw.githubusercontent.com/gradle/gradle/v${GRADLE_VERSION}.0/gradle/wrapper/gradle-wrapper.jar" \
+               -o gradle/wrapper/gradle-wrapper.jar
+          chmod +x gradlew
+
+      - name: Ensure gradle-wrapper.properties
+        run: |
+          PROPS="gradle/wrapper/gradle-wrapper.properties"
+          if [ ! -f "$PROPS" ]; then
+            cat > "$PROPS" <<'PROPSEOF'
+          distributionBase=GRADLE_USER_HOME
+          distributionPath=wrapper/dists
+          distributionUrl=https\://services.gradle.org/distributions/gradle-8.6-bin.zip
+          zipStoreBase=GRADLE_USER_HOME
+          zipStorePath=wrapper/dists
+          PROPSEOF
+          fi
+
+      - name: Build TV Debug APK
+        run: |
+          ./gradlew :tv:assembleDebug \
+            --no-daemon --stacktrace --info \
+            2>&1 | tee build-tv-debug.log
+          echo "════════ ERREURS TV ════════"
+          grep -E "^(e:|error:|FAILED|Exception|Caused by:)" build-tv-debug.log \
+            | grep -v "UP-TO-DATE\|SKIPPED" | head -100 || echo "Aucune erreur"
+          grep -q "BUILD SUCCESSFUL" build-tv-debug.log || exit 1
+
+      - name: Show TV error on failure
+        if: failure()
+        run: |
+          echo "════════ ERREURS DÉTAILLÉES ════════"
+          grep -E "(error:|Error:|FAILED|Exception|Caused by:|\.java:[0-9]+)" build-tv-debug.log | head -200
+          echo "════════ 50 DERNIÈRES LIGNES ════════"
+          tail -50 build-tv-debug.log
+
+      - name: Upload TV error log
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tv-error-log-${{ github.run_number }}
+          path: build-tv-debug.log
+          retention-days: 7
+
+      - name: Sign TV Release APK
+        if: env.KEYSTORE_BASE64 != ''
+        env:
+          KEY_ALIAS:      ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD:   ${{ secrets.ANDROID_KEY_PASSWORD }}
+          STORE_PASSWORD: ${{ secrets.ANDROID_STORE_PASSWORD }}
+        run: |
+          echo "$KEYSTORE_BASE64" | base64 --decode > tv/keystore.jks
+          ./gradlew :tv:assembleRelease \
+            --no-daemon --stacktrace --info \
+            -Pandroid.injected.signing.store.file=tv/keystore.jks \
+            -Pandroid.injected.signing.store.password=$STORE_PASSWORD \
+            -Pandroid.injected.signing.key.alias=$KEY_ALIAS \
+            -Pandroid.injected.signing.key.password=$KEY_PASSWORD \
+            2>&1 | tee build-tv-release.log
+          rm -f tv/keystore.jks
+          grep -q "BUILD SUCCESSFUL" build-tv-release.log || exit 1
+
+      - name: Rename TV APKs
+        run: |
+          TAG="${{ github.ref_name }}"
+          DEBUG=$(find tv/build/outputs/apk/debug   -name '*.apk' 2>/dev/null | head -1)
+          RELEASE=$(find tv/build/outputs/apk/release -name '*.apk' 2>/dev/null | head -1)
+          [ -f "$DEBUG" ]   && cp "$DEBUG"   "WiseIPTV-TV-${TAG}-debug.apk"   || true
+          [ -f "$RELEASE" ] && cp "$RELEASE" "WiseIPTV-TV-${TAG}-release.apk" || true
+          ls -lh WiseIPTV-TV-*.apk
+
+      - name: Upload TV artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tv-apks
+          path: 'WiseIPTV-TV-*.apk'
+          retention-days: 7
+
+  # ══════════════════════════════════════════════════════════════════
+  # JOB 3 : GitHub Release
+  # ══════════════════════════════════════════════════════════════════
+  release:
+    name: 🚀 GitHub Release
+    runs-on: ubuntu-latest
+    needs: [build-mobile, build-tv]
+
+    steps:
+      - name: Download Mobile APKs
+        uses: actions/download-artifact@v4
+        with:
+          name: mobile-apks
+          path: ./release-apks
+
+      - name: Download TV APKs
+        uses: actions/download-artifact@v4
+        with:
+          name: tv-apks
+          path: ./release-apks
+
+      - name: List all APKs
+        run: ls -lh ./release-apks/
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: 'release-apks/*.apk'
+          name: 'Wise IPTV ${{ github.ref_name }}'
+          body: |
+            ## Wise IPTV ${{ github.ref_name }}
+            **W Design — +240 555 445 514 (WhatsApp)**
+
+            | Fichier | Cible | Usage |
+            |---|---|---|
+            | `WiseIPTV-Mobile-*-debug.apk` | Phone / Tablette | Tests & dev |
+            | `WiseIPTV-Mobile-*-release.apk` | Phone / Tablette | Production |
+            | `WiseIPTV-TV-*-debug.apk` | Smart TV / TV Box | Tests & dev |
+            | `WiseIPTV-TV-*-release.apk` | Smart TV / TV Box | Production |
+
+            ### 📱 Installation Mobile
+            ```bash
+            adb install WiseIPTV-Mobile-${{ github.ref_name }}-debug.apk
+            ```
+
+            ### 📺 Installation TV Box
+            ```bash
+            adb connect 192.168.1.XXX:5555
+            adb install WiseIPTV-TV-${{ github.ref_name }}-debug.apk
+            ```
+
+            ### 🔐 Admin : `admin` / `Jesus@_2026`
+            ### 🆓 Trial : 7 jours automatique à la 1ère installation
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

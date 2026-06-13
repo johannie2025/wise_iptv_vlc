@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Fond principal immersif noir profond -->
+    <color name="wise_bg">#050508</color>
+    <!-- Surface cards / lignes -->
+    <color name="wise_surface">#0D1520</color>
+    <!-- Barre latérale BrowseFragment (headers) -->
+    <color name="wise_brand">#0A1A35</color>
+    <!-- Bleu primaire -->
+    <color name="wise_blue">#1565C0</color>
+    <color name="wise_blue_dark">#0A1A35</color>
+    <color name="wise_blue_light">#42A5F5</color>
+    <!-- Rouge accent (Netflix-like) -->
+    <color name="wise_red">#E50914</color>
+    <color name="wise_red_dark">#B20710</color>
+    <!-- Textes -->
+    <color name="white">#FFFFFF</color>
+    <color name="text_secondary">#8899BB</color>
+    <!-- Live badge -->
+    <color name="live_red">#E50914</color>
+    <!-- Focus / sélection -->
+    <color name="focus_overlay">#33E50914</color>
+</resources>

@@ -1,0 +1,37 @@
+plugins { 
+    id 'com.android.library' 
+}
+
+android {
+    compileSdk 34
+    namespace 'com.wdesign.wiseiptv.core'
+
+    defaultConfig { 
+        minSdk 21
+        targetSdk 34 
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
+
+dependencies {
+    // Interface & AndroidX
+    api "androidx.appcompat:appcompat:1.7.0"
+    api "androidx.lifecycle:lifecycle-livedata:2.7.0"
+
+    // MOTEUR DE LECTURE : LibVLC (Remplace ExoPlayer)
+    // Le mot-clé 'api' permet à vos modules 'mobile' et 'tv' d'en hériter automatiquement
+    api 'org.videolan.android:libvlc-all:3.6.0'
+
+    // Base de données (Room)
+    api "androidx.room:room-runtime:2.6.1"
+    annotationProcessor "androidx.room:room-compiler:2.6.1"
+
+    // Réseau & Images
+    api "com.squareup.okhttp3:okhttp:4.12.0"
+    api "com.github.bumptech.glide:glide:4.16.0"
+    annotationProcessor "com.github.bumptech.glide:compiler:4.16.0"
+}

@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:orientation="horizontal" android:background="@color/wise_bg"
+    android:padding="40dp">
+
+    <!-- Colonne gauche : Device Key + statut -->
+    <LinearLayout android:layout_width="0dp" android:layout_height="match_parent"
+        android:layout_weight="1" android:orientation="vertical"
+        android:gravity="center_vertical" android:paddingEnd="32dp">
+
+        <ImageView android:id="@+id/img_logo"
+        android:layout_width="80dp" android:layout_height="80dp"
+        android:src="@mipmap/ic_launcher"
+        android:scaleType="fitCenter"
+    
+            android:layout_marginBottom="16dp"/>
+
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="Wise IPTV" android:textColor="@color/white"
+            android:textSize="28sp" android:textStyle="bold" android:layout_marginBottom="24dp"/>
+
+        <TextView android:id="@+id/tv_status"
+            android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="⏳ EN ATTENTE" android:textColor="#FFFFEB3B"
+            android:textSize="20sp" android:textStyle="bold" android:layout_marginBottom="8dp"/>
+
+        <TextView android:id="@+id/tv_status_detail"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="Vérification…" android:textColor="@color/text_secondary"
+            android:textSize="14sp" android:layout_marginBottom="24dp"/>
+
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="🔑 Device Key" android:textColor="@color/white"
+            android:textSize="14sp" android:textStyle="bold" android:layout_marginBottom="8dp"/>
+
+        <TextView android:id="@+id/tv_device_key"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:background="@color/wise_surface" android:textColor="@color/wise_blue_light"
+            android:textSize="12sp" android:fontFamily="monospace"
+            android:padding="12dp" android:layout_marginBottom="8dp"/>
+
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="Communiquez cette clé à votre revendeur pour activer votre accès."
+            android:textColor="@color/text_secondary" android:textSize="12sp"/>
+    </LinearLayout>
+
+    <!-- Colonne droite : Infos provider + boutons -->
+    <LinearLayout android:layout_width="0dp" android:layout_height="match_parent"
+        android:layout_weight="1" android:orientation="vertical"
+        android:gravity="center_vertical" android:paddingStart="32dp">
+
+        <!-- Provider info (caché jusqu'à activation) -->
+        <LinearLayout android:id="@+id/card_provider"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="vertical" android:background="@color/wise_surface"
+            android:padding="16dp" android:layout_marginBottom="24dp"
+            android:visibility="gone">
+
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="📺 Accès activé" android:textColor="@color/white"
+                android:textSize="16sp" android:textStyle="bold" android:layout_marginBottom="12dp"/>
+
+            <TextView android:id="@+id/tv_provider_label"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:textColor="@color/text_secondary" android:textSize="13sp"
+                android:layout_marginBottom="6dp"/>
+            <TextView android:id="@+id/tv_login"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:textColor="@color/white" android:textSize="14sp"
+                android:layout_marginBottom="6dp"/>
+            <TextView android:id="@+id/tv_password"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:textColor="@color/white" android:textSize="14sp"
+                android:layout_marginBottom="6dp"/>
+            <TextView android:id="@+id/tv_expiry"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:textColor="@color/wise_blue_light" android:textSize="13sp"/>
+        </LinearLayout>
+
+        <ProgressBar android:id="@+id/progress_bar"
+            android:layout_width="48dp" android:layout_height="48dp"
+            android:layout_gravity="center" android:layout_marginBottom="16dp"
+            android:visibility="gone"/>
+
+        <Button android:id="@+id/btn_check"
+            android:layout_width="match_parent" android:layout_height="56dp"
+            android:text="🔄 Vérifier l'activation"
+            android:backgroundTint="@color/wise_blue"
+            android:textColor="@color/white" android:textSize="16sp"
+            android:focusable="true" android:layout_marginBottom="16dp"/>
+
+        <Button android:id="@+id/btn_access"
+            android:layout_width="match_parent" android:layout_height="56dp"
+            android:text="▶ Accéder au contenu"
+            android:backgroundTint="@color/wise_red"
+            android:textColor="@color/white" android:textSize="16sp"
+            android:focusable="true" android:visibility="gone"/>
+    </LinearLayout>
+
+</LinearLayout>

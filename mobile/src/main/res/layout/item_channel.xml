@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="110dp"
+    android:layout_margin="3dp" android:background="@color/wise_surface"
+    android:foreground="?attr/selectableItemBackground">
+    <ImageView android:id="@+id/img_logo"
+        android:layout_width="match_parent" android:layout_height="75dp"
+        android:scaleType="centerCrop" android:layout_gravity="top"/>
+    <TextView android:id="@+id/tv_name"
+        android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:layout_gravity="bottom" android:background="#BB000000"
+        android:textColor="@color/white" android:textSize="10sp"
+        android:padding="3dp" android:ellipsize="end" android:maxLines="1"
+        android:gravity="center_horizontal"/>
+    <TextView android:id="@+id/tv_live"
+        android:layout_width="wrap_content" android:layout_height="wrap_content"
+        android:layout_gravity="top|end" android:layout_margin="3dp"
+        android:text="LIVE" android:textColor="@color/white"
+        android:background="@color/live_red" android:textSize="8sp"
+        android:textStyle="bold" android:paddingStart="3dp" android:paddingEnd="3dp"
+        android:visibility="gone"/>
+</FrameLayout>

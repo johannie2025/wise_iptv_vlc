@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:orientation="vertical" android:background="@color/wise_bg" android:padding="16dp">
+    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+        android:text="Paramètres" android:textColor="@color/white"
+        android:textSize="22sp" android:textStyle="bold" android:layout_marginBottom="24dp"/>
+    <Button android:id="@+id/btn_add_playlist"
+        android:layout_width="match_parent" android:layout_height="52dp"
+        android:text="Gérer les playlists"/>
+    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+        android:text="W Design — +240 555 445 514\nWise IPTV v2.0"
+        android:textColor="@color/text_secondary" android:textSize="12sp"
+        android:layout_marginTop="32dp" android:gravity="center"
+        android:layout_gravity="center_horizontal"/>
+</LinearLayout>

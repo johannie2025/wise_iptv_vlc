@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Wise IPTV</string>
+    <string name="nav_home">Accueil</string>
+    <string name="nav_add">Playlist</string>
+    <string name="nav_settings">Paramètres</string>
+</resources>

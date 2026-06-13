@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" 
+    android:layout_height="match_parent"
+    android:background="#000">
+
+    <org.videolan.libvlc.util.VLCVideoLayout
+        android:id="@+id/tv_player_view"
+        android:layout_width="match_parent" 
+        android:layout_height="match_parent" />
+
+    <ProgressBar android:id="@+id/progress_bar"
+        android:layout_width="wrap_content" android:layout_height="wrap_content"
+        android:layout_gravity="center" android:visibility="gone"/>
+
+    <LinearLayout android:id="@+id/osd"
+        android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:orientation="vertical" android:alpha="0"
+        android:background="#AA000000" android:padding="16dp">
+
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="horizontal">
+            <TextView android:id="@+id/tv_channel_name"
+                android:layout_width="0dp" android:layout_height="wrap_content"
+                android:layout_weight="1" android:textColor="#FFFFFF"
+                android:textSize="22sp" android:textStyle="bold"/>
+            <TextView android:id="@+id/tv_quality"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:textColor="#FFCCCCCC" android:textSize="14sp"/>
+        </LinearLayout>
+
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="horizontal" android:layout_marginTop="4dp">
+            <TextView android:id="@+id/tv_group"
+                android:layout_width="0dp" android:layout_height="wrap_content"
+                android:layout_weight="1" android:textColor="#FFAAAAFF"
+                android:textSize="14sp"/>
+            <TextView android:id="@+id/tv_status"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:textColor="#FFFFAA00" android:textSize="14sp" android:visibility="gone"/>
+        </LinearLayout>
+
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="◄ Chaîne précédente    ▲▼ Qualité    Chaîne suivante ►"
+            android:gravity="center" android:textColor="#88FFFFFF" android:textSize="12sp"/>
+    </LinearLayout>
+</FrameLayout>

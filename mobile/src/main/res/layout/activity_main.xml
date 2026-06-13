@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:background="@color/wise_bg">
+
+    <com.google.android.material.appbar.AppBarLayout
+        android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:background="@color/wise_surface">
+
+        <LinearLayout android:layout_width="match_parent" android:layout_height="56dp"
+            android:orientation="horizontal" android:gravity="center_vertical"
+            android:paddingStart="12dp" android:paddingEnd="12dp">
+            <ImageView android:layout_width="0dp" android:layout_height="40dp"
+                android:layout_weight="1"
+                android:src="@mipmap/ic_launcher"
+                android:scaleType="fitStart"
+                android:contentDescription="Wise IPTV"/>
+            <!-- Spinner groupe chaînes -->
+            <Spinner android:id="@+id/spinner_group"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:minWidth="120dp"
+                android:layout_marginStart="8dp"/>
+        </LinearLayout>
+
+        <!-- Statut sync (playlist téléchargée, erreur réseau, etc.) -->
+        <TextView android:id="@+id/tv_sync_status"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:paddingStart="12dp" android:paddingEnd="12dp"
+            android:paddingTop="2dp" android:paddingBottom="4dp"
+            android:textColor="@color/text_secondary" android:textSize="12sp"
+            android:visibility="gone"/>
+
+        <SearchView android:id="@+id/search_view"
+            android:layout_width="match_parent" android:layout_height="48dp"
+            android:queryHint="Rechercher..." android:iconifiedByDefault="false"/>
+
+        <com.google.android.material.tabs.TabLayout
+            android:id="@+id/tab_layout"
+            android:layout_width="match_parent" android:layout_height="48dp"
+            android:background="@color/wise_surface"
+            app:tabTextColor="@color/text_secondary"
+            app:tabSelectedTextColor="@color/white"
+            app:tabIndicatorColor="@color/wise_blue"
+            app:tabMode="scrollable"/>
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <FrameLayout android:layout_width="match_parent" android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rv_channels"
+            android:layout_width="match_parent" android:layout_height="match_parent"
+            android:padding="4dp" android:clipToPadding="false"/>
+        <ProgressBar android:id="@+id/progress_bar"
+            android:layout_width="48dp" android:layout_height="48dp"
+            android:layout_gravity="center" android:visibility="gone"/>
+        <TextView android:id="@+id/tv_empty"
+            android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="Aucune chaîne.\nAjoutez une playlist M3U"
+            android:textColor="@color/text_secondary"
+            android:gravity="center" android:visibility="gone"/>
+    </FrameLayout>
+
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottom_nav"
+        android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:layout_gravity="bottom" android:background="@color/wise_surface"
+        app:menu="@menu/bottom_nav_menu"
+        app:itemIconTint="@color/nav_selector"
+        app:itemTextColor="@color/nav_selector"/>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
